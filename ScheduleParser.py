@@ -18,6 +18,8 @@ login_infos = {'sid' : account.username,
                'PIN' : account.password}
 calendar = Calendar.Calendar()
 
+print("\rProcessing...", end="")
+
 with requests.session() as session:
     #The constant headers that are useful to keep
     session.headers['Host'] = 'capsuleweb.ulaval.ca'
@@ -125,3 +127,4 @@ with requests.session() as session:
                         calendar.events.append(event)
         course_number += 1
 calendar.write_to_file()
+print("\rFile created with success!")
