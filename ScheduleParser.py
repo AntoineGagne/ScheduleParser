@@ -47,6 +47,8 @@ with requests.session() as session:
     redirect_url = html_parser.meta['content'].split('url=')[1]
     redirect_page = session.get("https://capsuleweb.ulaval.ca{0}".format(redirect_url))
 
+    print("\rSuccessfully logged in!", end="")
+
     #Go to the "Renseignement des études" page
     informations_about_studies_page_url = "https://capsuleweb.ulaval.ca/pls/etprod8/twbkwbis.P_GenMenu?name=bmenu.P_StuMainMnu"
     informations_about_studies_page = session.get(informations_about_studies_page_url)
@@ -66,6 +68,8 @@ with requests.session() as session:
     most_recent_schedule_value = html_parser.find('option')['value']
     form_infos = {'term_in' : most_recent_schedule_value}
     detailed_schedule_page = session.post(post_url, data=form_infos )
+
+    print("\rParsing the schedule...", end="")
 
     #Parse the HTML of the "Horaire detaillee" page
     html_parser = BeautifulSoup(detailed_schedule_page.text)
