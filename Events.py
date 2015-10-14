@@ -7,6 +7,7 @@ class Event:
         subject (string): The title of the event.
         start_date (datetime): The starting time and date of the event.
         end_date (datetime): The ending time and date of the event.
+        description (string): Some extra informations about the event.
         location (string): The location of the event.
     '''
     def __init__(self, subject, start_date, end_date, location):
@@ -32,6 +33,7 @@ class Event:
         self.subject = subject
         self.start_date = start_date
         self.end_date = end_date
+        self.description = ""
         self.location = location
 
     def format(self):
@@ -72,5 +74,7 @@ class Event:
         else:
             datas += "{0}:{1} PM,".format(self.end_date.hour - 12,
                                           end_minute)
+        if self.description:
+            datas += self.description + ","
         datas += self.location
         return datas

@@ -15,6 +15,10 @@ def arguments_parser():
                         type=str,
                         default="schedule.csv",
                         help="File name in which to put the schedule.")
+    parser.add_argument("-d",
+                        type=bool,
+                        default=False,
+                        help="Adds a description to the event." )
 
     return parser.parse_args()
 
@@ -132,6 +136,8 @@ try:
                                              starting_date_object,
                                              ending_date_object,
                                              str(location))
+                        if arguments.d:
+                            event.description = course_info[0].text
                         calendar.events.append(event)
                         #Interval of 7 days between each week
                         for days in range(time_between_start_and_end.days // 7):
@@ -142,9 +148,11 @@ try:
                                                  starting_date_object,
                                                  ending_date_object,
                                                  location)
+                            if arguments.d:
+                                event.description = course_info[0].text
                             calendar.events.append(event)
             course_number += 1
-    calendar.write_to_file()
+    calendar.write_to_file(arguments.d)
     print("\rFile created with success!")
 except(IndexError):
     print("\rThe username or password provided is incorrect.")

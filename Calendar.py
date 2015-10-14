@@ -6,7 +6,7 @@ class Calendar:
                             events.
         events (list<Event>): A list of Event.
     '''
-    def __init__(self, file_name = "schedule.csv"):
+    def __init__(self, file_name="schedule.csv"):
         '''Constructor of the Calendar class.
 
         Args:
@@ -21,10 +21,13 @@ class Calendar:
         self.file_name = file_name
         self.events = []
 
-    def write_to_file(self):
+    def write_to_file(self, has_description=False):
         '''Write the events in a file.'''
         with open(self.file_name, 'w+') as file:
-            file.write("Subject,Start Date,Start Time,End Date,End Time,Location")
+            if not has_description:
+                file.write("Subject,Start Date,Start Time,End Date,End Time,Location")
+            else:
+                file.write("Subject,Start Date,Start Time,End Date,End Time,Description,Location")
             for event in self.events:
                 file.write("\n")
                 file.write(event.format())
