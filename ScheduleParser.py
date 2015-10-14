@@ -2,13 +2,26 @@ import Account
 import Calendar
 import Events
 
+import argparse
 from bs4 import BeautifulSoup
 import datetime
 import getpass
 import re
 import requests
 
+def arguments_parser():
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("-f",
+                        type=str,
+                        default="schedule.csv",
+                        help="File name in which to put the schedule.")
+
+    return parser.parse_args()
+
 WEEK_DAYS = {"L": 0, "M": 1, "R": 2, "J": 3, "V": 4, "S": 5, "D": 6}
+
+#Arguments passed to the program
+arguments = arguments_parser()
 
 idul = input("Enter your IDUL: ")
 pin = getpass.getpass()
@@ -16,7 +29,7 @@ pin = getpass.getpass()
 account = Account.Account(idul, pin)
 login_infos = {'sid' : account.username, 
                'PIN' : account.password}
-calendar = Calendar.Calendar()
+calendar = Calendar.Calendar(arguments.f)
 
 print("\rLogging in...", end="")
 
