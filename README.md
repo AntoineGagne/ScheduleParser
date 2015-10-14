@@ -11,11 +11,18 @@ This program will log into your Université Laval account on Capsule and will pa
 
 # Dependencies
 
-To run this program, you will need Python 3.X and the following Python modules:
-+   requests
-+   BeautifulSoup
+This program depends on Python 3.x.x and the following modules:
++ argparse
++ beautifulsoup4
++ requests
+
+You can install these dependencies by executing the following command:
+```
+pip install -r requirements.txt
+```
 
 # How to run
+
 You can run this program by executing the following command in your terminal:
 ```
 python ScheduleParser.py [OPTIONS]
