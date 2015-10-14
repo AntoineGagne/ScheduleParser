@@ -22,7 +22,16 @@ class Calendar:
         self.events = []
 
     def write_to_file(self, has_description=False):
-        '''Write the events in a file.'''
+        '''Write the events in a file.
+
+        Args:
+            has_description (bool): A boolean indicating if there is a description.
+
+        Raises:
+            TypeError: If has_description is not a boolean.
+        '''
+        if not isinstance(has_description, bool):
+            raise TypeError("has_description is not a boolean")
         with open(self.file_name, 'w+') as file:
             if not has_description:
                 file.write("Subject,Start Date,Start Time,End Date,End Time,Location")
