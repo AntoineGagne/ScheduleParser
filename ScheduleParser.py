@@ -54,14 +54,14 @@ try:
 
         #Connect to the login page
         login_page = session.get("https://capsuleweb.ulaval.ca/pls/etprod8/twbkwbis.P_WWWLogin")
-        html_parser = BeautifulSoup(login_page.text)
+        html_parser = BeautifulSoup(login_page.text, "html.parser")
 
         #Send a POST to the URL specified by the action attribute of the form
         post_url = "https://capsuleweb.ulaval.ca{0}".format(html_parser.form['action'])
         response = session.post(post_url, data=login_infos, headers=login_headers, allow_redirects=True)
 
         #Go to the redirection page
-        html_parser = BeautifulSoup(response.text)
+        html_parser = BeautifulSoup(response.text, "html.parser")
         redirect_url = html_parser.meta['content'].split('url=')[1]
         redirect_page = session.get("https://capsuleweb.ulaval.ca{0}".format(redirect_url))
 
@@ -80,7 +80,7 @@ try:
         detailed_schedule_page = session.get(detailed_schedule_page_url)
 
         #Choose the most recent schedule
-        html_parser = BeautifulSoup(detailed_schedule_page.text)
+        html_parser = BeautifulSoup(detailed_schedule_page.text, "html.parser")
         post_url = html_parser.find_all('form')[1]['action']
         post_url = "https://capsuleweb.ulaval.ca{0}".format(post_url)
         most_recent_schedule_value = html_parser.find('option')['value']
@@ -90,7 +90,7 @@ try:
         print("\rParsing the schedule...", end="")
 
         #Parse the HTML of the "Horaire detaillee" page
-        html_parser = BeautifulSoup(detailed_schedule_page.text)
+        html_parser = BeautifulSoup(detailed_schedule_page.text, "html.parser")
         #Get the name of the courses
         captions = html_parser.find_all('caption', 'captiontext')
         good_captions = re.compile(".*-.*")
