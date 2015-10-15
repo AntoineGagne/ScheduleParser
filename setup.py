@@ -13,7 +13,12 @@ setup(name = 'ScheduleParser',
       author = 'Antoine Gagne',
       author_email = 'antoine.gagne.2@ulaval.ca',
       packages = find_packages(),
+      entry_points = {
+          'console_scripts': [
+              'ScheduleParser = ScheduleParser:schedule_parser',
+                             ],
+          },
 
       install_requires = ['beautifulsoup4>=4.4.1',
-                          'requests>=2.8.1'],
+                          'requests>=2.8.1']
      )
