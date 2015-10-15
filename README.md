@@ -12,7 +12,6 @@ This program will log into your Université Laval account on Capsule and will pa
 # Dependencies
 
 This program depends on Python 3.x.x and the following modules:
-+ argparse
 + beautifulsoup4
 + requests
 
