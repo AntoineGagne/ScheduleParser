@@ -4,9 +4,6 @@ class Account:
     Attributes:
         username (string): The name of the account.
         password (string): The password of the account.
-        credit_cards (dict<string, CreditCard>): A dictionary of the user 
-                                                 credit cards.
-    
     '''
     def __init__(self, 
                  username, 
