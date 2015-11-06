@@ -42,8 +42,7 @@ class Event:
         Returns:
             datas (string): The formatted datas.
         '''
-        datas = ""
-        datas += self.subject + ","
+        datas = self.subject + ","
         datas += "{0}/{1}/{2},".format(self.start_date.month,
                                        self.start_date.day,
                                        self.start_date.year)
