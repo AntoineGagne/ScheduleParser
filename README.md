@@ -29,5 +29,5 @@ python ScheduleParser.py [OPTIONS]
 
 # Options
     -h,--help           Print this message.
-    -f                  File name in which to put the schedule. (default: schedule.csv)
+    -f [FILENAME]       File name in which to put the schedule. (default: schedule.csv)
     -d                  Adds a description to the event. (default: False)
