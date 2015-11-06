@@ -16,7 +16,7 @@ def arguments_parser():
                         default="schedule.csv",
                         help="File name in which to put the schedule.")
     parser.add_argument("-d",
-                        type=bool,
+                        action='store_true',
                         default=False,
                         help="Adds a description to the event." )
 
