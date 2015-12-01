@@ -10,7 +10,6 @@ import re
 import requests
 
 def arguments_parser():
-    current_year = datetime.datetime.today().year
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("-f",
                         "--file_name",
