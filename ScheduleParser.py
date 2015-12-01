@@ -10,35 +10,52 @@ import re
 import requests
 
 def arguments_parser():
+    current_year = datetime.datetime.today().year
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("-f",
+    parser.add_argument("-file_name",
                         type=str,
                         default="schedule.csv",
                         help="File name in which to put the schedule.")
-    parser.add_argument("-d",
+    parser.add_argument("-description",
                         action='store_true',
                         default=False,
-                        help="Adds a description to the event." )
+                        help="Adds a description to the event.")
+    parser.add_argument("-semester_date",
+                        metavar=("YEAR", "MONTH"),
+                        nargs=2,
+                        help="Choose the semester schedule you want (ex: 2016 Hiver)")
 
     return parser.parse_args()
 
 def schedule_parser():
     WEEK_DAYS = {"L": 0, "M": 1, "R": 2, "J": 3, "V": 4, "S": 5, "D": 6}
+    SCHEDULE_DATE = {"A": "09", "H": "01", "E": "05"}
 
     #Arguments passed to the program
     arguments = arguments_parser()
 
-    idul = input("Enter your IDUL: ")
-    pin = getpass.getpass()
-
-    account = Account.Account(idul, pin)
-    login_infos = {'sid' : account.username, 
-                   'PIN' : account.password}
-    calendar = Calendar.Calendar(arguments.f)
-
-    print("\rLogging in...", end="")
-
     try:
+        #Date for which the user wants the schedule
+        month = None
+        year = None
+        schedule_date = None
+        if arguments.semester_date:
+            month = arguments.semester_date[1]
+            year = arguments.semester_date[0]
+            if not re.compile("^[AaEeHh].*$").match(month) or int(year) < 2009:
+                raise RuntimeError("Invalid command line argument")
+            schedule_date = str(year) + SCHEDULE_DATE[month.capitalize()[0]]
+
+        idul = input("Enter your IDUL: ")
+        pin = getpass.getpass()
+
+        account = Account.Account(idul, pin)
+        login_infos = {'sid' : account.username, 
+                       'PIN' : account.password}
+        calendar = Calendar.Calendar(arguments.file_name)
+
+        print("\rLogging in...", end="")
+
         with requests.session() as session:
             #The constant headers that are useful to keep
             session.headers['Host'] = 'capsuleweb.ulaval.ca'
@@ -85,6 +102,8 @@ def schedule_parser():
             post_url = html_parser.find_all('form')[1]['action']
             post_url = "https://capsuleweb.ulaval.ca{0}".format(post_url)
             most_recent_schedule_value = html_parser.find('option')['value']
+            if schedule_date:
+                most_recent_schedule_value = schedule_date
             form_infos = {'term_in' : most_recent_schedule_value}
             detailed_schedule_page = session.post(post_url, data=form_infos )
 
@@ -138,7 +157,7 @@ def schedule_parser():
                                                      starting_date_object,
                                                      ending_date_object,
                                                      str(location))
-                                if arguments.d:
+                                if arguments.description:
                                     event.description = course_info[0].text
                                 calendar.events.append(event)
                                 #Interval of 7 days between each week
@@ -150,14 +169,16 @@ def schedule_parser():
                                                          starting_date_object,
                                                          ending_date_object,
                                                          location)
-                                    if arguments.d:
+                                    if arguments.description:
                                         event.description = course_info[0].text
                                     calendar.events.append(event)
                 course_number += 1
-        calendar.write_to_file(arguments.d)
+        calendar.write_to_file(arguments.description)
         print("\rFile created with success!")
     except(IndexError):
         print("\rThe username or password provided is incorrect.")
+    except(RuntimeError):
+        print("\rThe precised year should be higher than 2009.\nThe precised month should be one of those:\n  - Hiver\n  - Ete\n  - Automne")
     except:
         print("\rThere was an unexpected error while executing the program.")
 if __name__ == '__main__':
