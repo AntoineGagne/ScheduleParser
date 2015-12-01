@@ -28,6 +28,7 @@ python ScheduleParser.py [OPTIONS]
 ```
 
 # Options
-    -h,--help           Print this message.
-    -f [FILENAME]       File name in which to put the schedule. (default: schedule.csv)
-    -d                  Adds a description to the event. (default: False)
+    -h, --help                                                      Print this message.
+    -f FILENAME, --filename FILENAME                                File name in which to put the schedule. (default: schedule.csv)
+    -d, --description                                               Adds a description to the event. (default: False)
+    -s YEAR MONTH, --semester_date YEAR MONTH                       Choose the schedule of a specific semester (ie: Hiver 2016). (default: None)

@@ -12,15 +12,18 @@ import requests
 def arguments_parser():
     current_year = datetime.datetime.today().year
     parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("-file_name",
+    parser.add_argument("-f",
+                        "--file_name",
                         type=str,
                         default="schedule.csv",
                         help="File name in which to put the schedule.")
-    parser.add_argument("-description",
+    parser.add_argument("-d",
+                        "--description",
                         action='store_true',
                         default=False,
                         help="Adds a description to the event.")
-    parser.add_argument("-semester_date",
+    parser.add_argument("-s",
+                        "--semester_date",
                         metavar=("YEAR", "MONTH"),
                         nargs=2,
                         help="Choose the semester schedule you want (ex: 2016 Hiver)")
