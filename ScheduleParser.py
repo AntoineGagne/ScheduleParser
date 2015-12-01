@@ -160,7 +160,13 @@ def schedule_parser():
                                                      ending_date_object,
                                                      str(location))
                                 if arguments.description:
-                                    event.description = course_info[0].text
+                                    event.description = r'"'
+                                    event.description += course_info[0].text
+                                    event.description += "\n\n"
+                                    teacher_name = course_info[6].text.split()
+                                    for name in teacher_name:
+                                        event.description += " " + name
+                                    event.description += r'"'
                                 calendar.events.append(event)
                                 #Interval of 7 days between each week
                                 for days in range(time_between_start_and_end.days // 7):
@@ -172,7 +178,13 @@ def schedule_parser():
                                                          ending_date_object,
                                                          location)
                                     if arguments.description:
-                                        event.description = course_info[0].text
+                                        event.description = r'"'
+                                        event.description += course_info[0].text
+                                        event.description += "\n\n"
+                                        teacher_name = course_info[6].text.split()
+                                        for name in teacher_name:
+                                            event.description += " " + name
+                                        event.description += r'"'
                                     calendar.events.append(event)
                 course_number += 1
         calendar.write_to_file(arguments.description)
