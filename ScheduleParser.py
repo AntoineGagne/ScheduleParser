@@ -29,8 +29,7 @@ def arguments_parser():
 
     return parser.parse_args()
 
-def schedule_parser():
-    WEEK_DAYS = {"L": 0, "M": 1, "R": 2, "J": 3, "V": 4, "S": 5, "D": 6}
+def navigate_website():
     SCHEDULE_DATE = {"A": "09", "H": "01", "E": "05"}
 
     #Arguments passed to the program
@@ -110,90 +109,95 @@ def schedule_parser():
             detailed_schedule_page = session.post(post_url, data=form_infos )
 
             print("\rParsing the schedule...", end="")
+            parsing_schedule(detailed_schedule_page.text, arguments.description, calendar)
 
-            #Parse the HTML of the "Horaire detaillee" page
-            html_parser = BeautifulSoup(detailed_schedule_page.text, "html.parser")
-            #Get the name of the courses
-            captions = html_parser.find_all('caption', 'captiontext')
-            good_captions = re.compile(".*-.*")
-            filter_good_captions = lambda x: good_captions.match(str(x))
-            course_name = list(filter(filter_good_captions, captions))
-            tables = html_parser.find_all('table', 'datadisplaytable')
-            course_number = 0
-            for row in range(3, len(tables), 2):
-                course_infos = tables[row].find_all('tr')
-                for course_info in course_infos:
-                    course_info = course_info.find_all('td', 'dddefault')
-                    if course_info:
-                        course_caption = course_name[course_number].text
-                        time = course_info[1].text.split('-')
-                        if len(time) > 1:
-                            starting_time = time[0].split(':')
-                            ending_time = time[1].split(':')
-                            week_day = course_info[2].text
-                            location = course_info[3].text
-                            date = course_info[4].text.split('-')
-                            starting_date = date[0].split('/')
-                            ending_date = date[1].split('/')
-                            starting_date_object = datetime.datetime(int(starting_date[0]),
-                                                                     int(starting_date[1]),
-                                                                     int(starting_date[2]),
-                                                                     int(starting_time[0]),
-                                                                     int(starting_time[1]))
-                            ending_date_object = datetime.datetime(int(ending_date[0]),
-                                                                   int(ending_date[1]),
-                                                                   int(ending_date[2]),
-                                                                   int(starting_time[0]),
-                                                                   int(starting_time[1]))
-                            if WEEK_DAYS[week_day] >= starting_date_object.weekday():
-                                delta_days = WEEK_DAYS[week_day] - starting_date_object.weekday()
-                                time_delta = datetime.timedelta(delta_days)
-                                starting_date_object = starting_date_object + time_delta
-                                time_between_start_and_end = ending_date_object - starting_date_object
-                                ending_date_object = datetime.datetime(int(starting_date_object.year),
-                                                                       int(starting_date_object.month),
-                                                                       int(starting_date_object.day),
-                                                                       int(ending_time[0]),
-                                                                       int(ending_time[1]))
-                                event = Events.Event(course_caption,
-                                                     starting_date_object,
-                                                     ending_date_object,
-                                                     str(location))
-                                if arguments.description:
-                                    event.description = r'"'
-                                    event.description += course_info[0].text
-                                    event.description += "\n\n"
-                                    teacher_name = course_info[6].text.split()
-                                    for name in teacher_name:
-                                        event.description += " " + name
-                                    event.description += r'"'
-                                calendar.events.append(event)
-                                #Interval of 7 days between each week
-                                for days in range(time_between_start_and_end.days // 7):
-                                    delta_day = datetime.timedelta(7)
-                                    starting_date_object = starting_date_object + delta_day
-                                    ending_date_object = ending_date_object + delta_day
-                                    event = Events.Event(course_caption,
-                                                         starting_date_object,
-                                                         ending_date_object,
-                                                         location)
-                                    if arguments.description:
-                                        event.description = r'"'
-                                        event.description += course_info[0].text
-                                        event.description += "\n\n"
-                                        teacher_name = course_info[6].text.split()
-                                        for name in teacher_name:
-                                            event.description += " " + name
-                                        event.description += r'"'
-                                    calendar.events.append(event)
-                course_number += 1
-        calendar.write_to_file(arguments.description)
-        print("\rFile created with success!")
     except(IndexError):
         print("\rThe username or password provided is incorrect.")
     except(RuntimeError):
         print("\rThe precised year should be higher than 2009.\nThe precised month should be one of those:\n  - Hiver\n  - Ete\n  - Automne")
     except:
         print("\rThere was an unexpected error while executing the program.")
+
+def parsing_schedule(page_html, description, calendar):
+    #Parse the HTML of the "Horaire detaillee" page
+    html_parser = BeautifulSoup(page_html, "html.parser")
+    #Get the name of the courses
+    captions = html_parser.find_all('caption', 'captiontext')
+    good_captions = re.compile(".*-.*")
+    filter_good_captions = lambda x: good_captions.match(str(x))
+    course_name = list(filter(filter_good_captions, captions))
+    tables = html_parser.find_all('table', 'datadisplaytable')
+    course_number = 0
+    WEEK_DAYS = {"L": 0, "M": 1, "R": 2, "J": 3, "V": 4, "S": 5, "D": 6}
+    for row in range(3, len(tables), 2):
+        course_infos = tables[row].find_all('tr')
+        for course_info in course_infos:
+            course_info = course_info.find_all('td', 'dddefault')
+            if course_info:
+                course_caption = course_name[course_number].text
+                time = course_info[1].text.split('-')
+                if len(time) > 1:
+                    starting_time = time[0].split(':')
+                    ending_time = time[1].split(':')
+                    week_day = course_info[2].text
+                    location = course_info[3].text
+                    date = course_info[4].text.split('-')
+                    starting_date = date[0].split('/')
+                    ending_date = date[1].split('/')
+                    starting_date_object = datetime.datetime(int(starting_date[0]),
+                                                             int(starting_date[1]),
+                                                             int(starting_date[2]),
+                                                             int(starting_time[0]),
+                                                             int(starting_time[1]))
+                    ending_date_object = datetime.datetime(int(ending_date[0]),
+                                                           int(ending_date[1]),
+                                                           int(ending_date[2]),
+                                                           int(starting_time[0]),
+                                                           int(starting_time[1]))
+                    if WEEK_DAYS[week_day] >= starting_date_object.weekday():
+                        delta_days = WEEK_DAYS[week_day] - starting_date_object.weekday()
+                        time_delta = datetime.timedelta(delta_days)
+                        starting_date_object = starting_date_object + time_delta
+                        time_between_start_and_end = ending_date_object - starting_date_object
+                        ending_date_object = datetime.datetime(int(starting_date_object.year),
+                                                               int(starting_date_object.month),
+                                                               int(starting_date_object.day),
+                                                               int(ending_time[0]),
+                                                               int(ending_time[1]))
+                        event = Events.Event(course_caption,
+                                             starting_date_object,
+                                             ending_date_object,
+                                             str(location))
+                        if description:
+                            event.description = r'"'
+                            event.description += course_info[0].text
+                            event.description += "\n\n"
+                            teacher_name = course_info[6].text.split()
+                            for name in teacher_name:
+                                event.description += " " + name
+                            event.description += r'"'
+                        calendar.events.append(event)
+                        #Interval of 7 days between each week
+                        for days in range(time_between_start_and_end.days // 7):
+                            delta_day = datetime.timedelta(7)
+                            starting_date_object = starting_date_object + delta_day
+                            ending_date_object = ending_date_object + delta_day
+                            event = Events.Event(course_caption,
+                                                 starting_date_object,
+                                                 ending_date_object,
+                                                 location)
+                            if description:
+                                event.description = r'"'
+                                event.description += course_info[0].text
+                                event.description += "\n\n"
+                                teacher_name = course_info[6].text.split()
+                                for name in teacher_name:
+                                    event.description += " " + name
+                                event.description += r'"'
+                            calendar.events.append(event)
+        course_number += 1
+    calendar.write_to_file(description)
+    print("\rFile created with success!")
+
 if __name__ == '__main__':
-    schedule_parser()
+    navigate_website()
