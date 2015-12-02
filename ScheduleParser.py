@@ -166,15 +166,32 @@ def create_events(course_info, course_caption, description, calendar, WEEK_DAYS)
         starting_date_object, ending_date_object = create_date_objects(time, date)
         if WEEK_DAYS[week_day] >= starting_date_object.weekday():
             delta_days = WEEK_DAYS[week_day] - starting_date_object.weekday()
-            event = create_first_event(course_caption, location, time, starting_date_object, ending_date_object, delta_days)
+            time_delta = datetime.timedelta(delta_days)
+            starting_date_object = starting_date_object + time_delta
+            ending_time = time[1].split(':')
             time_between_start_and_end = ending_date_object - starting_date_object
+            ending_date_object = datetime.datetime(int(starting_date_object.year),
+                                                   int(starting_date_object.month),
+                                                   int(starting_date_object.day),
+                                                   int(ending_time[0]),
+                                                   int(ending_time[1]))
+            event = Events.Event(course_caption,
+                                 starting_date_object,
+                                 ending_date_object,
+                                 str(location))
             if description:
                 add_description(event, course_info[0].text, course_info[6].text.split())
             calendar.events.append(event)
 
             #Interval of 7 days between each week
             for days in range(time_between_start_and_end.days // 7):
-                event = create_events_on_interval(course_caption, location, starting_date_object, ending_date_object)
+                delta_day = datetime.timedelta(7)
+                starting_date_object = starting_date_object + delta_day
+                ending_date_object = ending_date_object + delta_day
+                event = Events.Event(course_caption,
+                                     starting_date_object,
+                                     ending_date_object,
+                                     location)
                 if description:
                     add_description(event, course_info[0].text, course_info[6].text.split())
                 calendar.events.append(event)
@@ -197,22 +214,6 @@ def create_date_objects(time, date):
 
     return starting_date_object, ending_date_object
 
-def create_first_event(course_caption, location, time, starting_date_object, ending_date_object, delta_days):
-    time_delta = datetime.timedelta(delta_days)
-    starting_date_object = starting_date_object + time_delta
-    ending_time = time[1].split(':')
-    ending_date_object = datetime.datetime(int(starting_date_object.year),
-                                           int(starting_date_object.month),
-                                           int(starting_date_object.day),
-                                           int(ending_time[0]),
-                                           int(ending_time[1]))
-    event = Events.Event(course_caption,
-                         starting_date_object,
-                         ending_date_object,
-                         str(location))
-
-    return event
-
 
 def add_description(event, class_type, teacher_name):
     event.description = r'"'
@@ -222,17 +223,6 @@ def add_description(event, class_type, teacher_name):
         event.description += " " + name
     event.description += r'"'
 
-
-def create_events_on_interval(course_caption, location, starting_date_object, ending_date_object):
-    delta_day = datetime.timedelta(7)
-    starting_date_object = starting_date_object + delta_day
-    ending_date_object = ending_date_object + delta_day
-    event = Events.Event(course_caption,
-                         starting_date_object,
-                         ending_date_object,
-                         location)
-
-    return event
 
 if __name__ == '__main__':
     navigate_website()
