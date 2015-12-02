@@ -146,69 +146,72 @@ def parsing_schedule(page_html, description, calendar):
             course_info = course_info.find_all('td', 'dddefault')
             if course_info:
                 course_caption = course_name[course_number].text
-                time = course_info[1].text.split('-')
-                if len(time) > 1:
-                    starting_time = time[0].split(':')
-                    ending_time = time[1].split(':')
-                    week_day = course_info[2].text
-                    location = course_info[3].text
-                    date = course_info[4].text.split('-')
-                    starting_date = date[0].split('/')
-                    ending_date = date[1].split('/')
-                    starting_date_object = datetime.datetime(int(starting_date[0]),
-                                                             int(starting_date[1]),
-                                                             int(starting_date[2]),
-                                                             int(starting_time[0]),
-                                                             int(starting_time[1]))
-                    ending_date_object = datetime.datetime(int(ending_date[0]),
-                                                           int(ending_date[1]),
-                                                           int(ending_date[2]),
-                                                           int(starting_time[0]),
-                                                           int(starting_time[1]))
-                    if WEEK_DAYS[week_day] >= starting_date_object.weekday():
-                        delta_days = WEEK_DAYS[week_day] - starting_date_object.weekday()
-                        time_delta = datetime.timedelta(delta_days)
-                        starting_date_object = starting_date_object + time_delta
-                        time_between_start_and_end = ending_date_object - starting_date_object
-                        ending_date_object = datetime.datetime(int(starting_date_object.year),
-                                                               int(starting_date_object.month),
-                                                               int(starting_date_object.day),
-                                                               int(ending_time[0]),
-                                                               int(ending_time[1]))
-                        event = Events.Event(course_caption,
-                                             starting_date_object,
-                                             ending_date_object,
-                                             str(location))
-                        if description:
-                            event.description = r'"'
-                            event.description += course_info[0].text
-                            event.description += "\n\n"
-                            teacher_name = course_info[6].text.split()
-                            for name in teacher_name:
-                                event.description += " " + name
-                            event.description += r'"'
-                        calendar.events.append(event)
-                        #Interval of 7 days between each week
-                        for days in range(time_between_start_and_end.days // 7):
-                            delta_day = datetime.timedelta(7)
-                            starting_date_object = starting_date_object + delta_day
-                            ending_date_object = ending_date_object + delta_day
-                            event = Events.Event(course_caption,
-                                                 starting_date_object,
-                                                 ending_date_object,
-                                                 location)
-                            if description:
-                                event.description = r'"'
-                                event.description += course_info[0].text
-                                event.description += "\n\n"
-                                teacher_name = course_info[6].text.split()
-                                for name in teacher_name:
-                                    event.description += " " + name
-                                event.description += r'"'
-                            calendar.events.append(event)
+                create_events(course_info, course_caption, description, calendar, WEEK_DAYS)
         course_number += 1
     calendar.write_to_file(description)
     print("\rFile created with success!")
+
+def create_events(course_info, course_caption, description, calendar, WEEK_DAYS):
+    time = course_info[1].text.split('-')
+    if len(time) > 1:
+        starting_time = time[0].split(':')
+        ending_time = time[1].split(':')
+        week_day = course_info[2].text
+        location = course_info[3].text
+        date = course_info[4].text.split('-')
+        starting_date = date[0].split('/')
+        ending_date = date[1].split('/')
+        starting_date_object = datetime.datetime(int(starting_date[0]),
+                                                 int(starting_date[1]),
+                                                 int(starting_date[2]),
+                                                 int(starting_time[0]),
+                                                 int(starting_time[1]))
+        ending_date_object = datetime.datetime(int(ending_date[0]),
+                                               int(ending_date[1]),
+                                               int(ending_date[2]),
+                                               int(starting_time[0]),
+                                               int(starting_time[1]))
+        if WEEK_DAYS[week_day] >= starting_date_object.weekday():
+            delta_days = WEEK_DAYS[week_day] - starting_date_object.weekday()
+            time_delta = datetime.timedelta(delta_days)
+            starting_date_object = starting_date_object + time_delta
+            time_between_start_and_end = ending_date_object - starting_date_object
+            ending_date_object = datetime.datetime(int(starting_date_object.year),
+                                                   int(starting_date_object.month),
+                                                   int(starting_date_object.day),
+                                                   int(ending_time[0]),
+                                                   int(ending_time[1]))
+            event = Events.Event(course_caption,
+                                 starting_date_object,
+                                 ending_date_object,
+                                 str(location))
+            if description:
+                event.description = r'"'
+                event.description += course_info[0].text
+                event.description += "\n\n"
+                teacher_name = course_info[6].text.split()
+                for name in teacher_name:
+                    event.description += " " + name
+                event.description += r'"'
+            calendar.events.append(event)
+            #Interval of 7 days between each week
+            for days in range(time_between_start_and_end.days // 7):
+                delta_day = datetime.timedelta(7)
+                starting_date_object = starting_date_object + delta_day
+                ending_date_object = ending_date_object + delta_day
+                event = Events.Event(course_caption,
+                                     starting_date_object,
+                                     ending_date_object,
+                                     location)
+                if description:
+                    event.description = r'"'
+                    event.description += course_info[0].text
+                    event.description += "\n\n"
+                    teacher_name = course_info[6].text.split()
+                    for name in teacher_name:
+                        event.description += " " + name
+                    event.description += r'"'
+                calendar.events.append(event)
 
 if __name__ == '__main__':
     navigate_website()
