@@ -68,7 +68,9 @@ def navigate_website():
             session.headers['Connection'] = 'keep-alive'
 
             login(login_infos, session)
-            navigate_to_schedule(session)
+            detailed_schedule_page = navigate_to_schedule(session, schedule_date)
+            print("\rParsing the schedule...", end="")
+            parsing_schedule(detailed_schedule_page.text, arguments.description, calendar)
 
     except(IndexError):
         print("\rThe username or password provided is incorrect.")
@@ -97,7 +99,7 @@ def login(login_infos, session):
 
     print("\rSuccessfully logged in!", end="")
 
-def navigate_to_schedule(session):
+def navigate_to_schedule(session, schedule_date):
     #Go to the "Renseignement des études" page
     informations_about_studies_page_url = "https://capsuleweb.ulaval.ca/pls/etprod8/twbkwbis.P_GenMenu?name=bmenu.P_StuMainMnu"
     informations_about_studies_page = session.get(informations_about_studies_page_url)
@@ -119,9 +121,8 @@ def navigate_to_schedule(session):
         most_recent_schedule_value = schedule_date
     form_infos = {'term_in' : most_recent_schedule_value}
     detailed_schedule_page = session.post(post_url, data=form_infos )
+    return detailed_schedule_page
 
-    print("\rParsing the schedule...", end="")
-    parsing_schedule(detailed_schedule_page.text, arguments.description, calendar)
 
 def parsing_schedule(page_html, description, calendar):
     #Parse the HTML of the "Horaire detaillee" page
