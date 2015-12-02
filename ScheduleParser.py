@@ -30,7 +30,6 @@ def arguments_parser():
     return parser.parse_args()
 
 def navigate_website():
-    SCHEDULE_DATE = {"A": "09", "H": "01", "E": "05"}
 
     #Arguments passed to the program
     arguments = arguments_parser()
@@ -45,6 +44,7 @@ def navigate_website():
             year = arguments.semester_date[0]
             if not re.compile("^[AaEeHh].*$").match(month) or int(year) < 2009:
                 raise RuntimeError("Invalid command line argument")
+            SCHEDULE_DATE = {"A": "09", "H": "01", "E": "05"}
             schedule_date = str(year) + SCHEDULE_DATE[month.capitalize()[0]]
 
         idul = input("Enter your IDUL: ")
@@ -67,49 +67,8 @@ def navigate_website():
             session.headers['DNT'] = '1'
             session.headers['Connection'] = 'keep-alive'
 
-            #The headers that are needed to login
-            login_headers = {'Cookie' : 'TESTID=set; _ga=GA1.2.1516654279.1441114981; __utma=17087078.1516654279.1441114981.1442264931.1442264931.1; __utmz=17087078.1442264931.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); accessibility=false'}
-                       
-
-            #Connect to the login page
-            login_page = session.get("https://capsuleweb.ulaval.ca/pls/etprod8/twbkwbis.P_WWWLogin")
-            html_parser = BeautifulSoup(login_page.text, "html.parser")
-
-            #Send a POST to the URL specified by the action attribute of the form
-            post_url = "https://capsuleweb.ulaval.ca{0}".format(html_parser.form['action'])
-            response = session.post(post_url, data=login_infos, headers=login_headers, allow_redirects=True)
-
-            #Go to the redirection page
-            html_parser = BeautifulSoup(response.text, "html.parser")
-            redirect_url = html_parser.meta['content'].split('url=')[1]
-            redirect_page = session.get("https://capsuleweb.ulaval.ca{0}".format(redirect_url))
-
-            print("\rSuccessfully logged in!", end="")
-
-            #Go to the "Renseignement des études" page
-            informations_about_studies_page_url = "https://capsuleweb.ulaval.ca/pls/etprod8/twbkwbis.P_GenMenu?name=bmenu.P_StuMainMnu"
-            informations_about_studies_page = session.get(informations_about_studies_page_url)
-
-            #Go to the "Inscription" page
-            inscription_page_url = "https://capsuleweb.ulaval.ca/pls/etprod8/twbkwbis.P_GenMenu?name=bmenu.P_RegMnu"
-            inscription_page = session.get(inscription_page_url)
-
-            #Go to the "Horaire detaillee" page
-            detailed_schedule_page_url = "https://capsuleweb.ulaval.ca/pls/etprod8/bwskfshd.P_CrseSchdDetl"
-            detailed_schedule_page = session.get(detailed_schedule_page_url)
-
-            #Choose the most recent schedule
-            html_parser = BeautifulSoup(detailed_schedule_page.text, "html.parser")
-            post_url = html_parser.find_all('form')[1]['action']
-            post_url = "https://capsuleweb.ulaval.ca{0}".format(post_url)
-            most_recent_schedule_value = html_parser.find('option')['value']
-            if schedule_date:
-                most_recent_schedule_value = schedule_date
-            form_infos = {'term_in' : most_recent_schedule_value}
-            detailed_schedule_page = session.post(post_url, data=form_infos )
-
-            print("\rParsing the schedule...", end="")
-            parsing_schedule(detailed_schedule_page.text, arguments.description, calendar)
+            login(login_infos, session)
+            navigate_to_schedule(session)
 
     except(IndexError):
         print("\rThe username or password provided is incorrect.")
@@ -117,6 +76,52 @@ def navigate_website():
         print("\rThe precised year should be higher than 2009.\nThe precised month should be one of those:\n  - Hiver\n  - Ete\n  - Automne")
     except:
         print("\rThere was an unexpected error while executing the program.")
+
+
+def login(login_infos, session):
+    #The headers that are needed to login
+    login_headers = {'Cookie' : 'TESTID=set; _ga=GA1.2.1516654279.1441114981; __utma=17087078.1516654279.1441114981.1442264931.1442264931.1; __utmz=17087078.1442264931.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); accessibility=false'}
+
+    #Connect to the login page
+    login_page = session.get("https://capsuleweb.ulaval.ca/pls/etprod8/twbkwbis.P_WWWLogin")
+    html_parser = BeautifulSoup(login_page.text, "html.parser")
+
+    #Send a POST to the URL specified by the action attribute of the form
+    post_url = "https://capsuleweb.ulaval.ca{0}".format(html_parser.form['action'])
+    response = session.post(post_url, data=login_infos, headers=login_headers, allow_redirects=True)
+
+    #Go to the redirection page
+    html_parser = BeautifulSoup(response.text, "html.parser")
+    redirect_url = html_parser.meta['content'].split('url=')[1]
+    redirect_page = session.get("https://capsuleweb.ulaval.ca{0}".format(redirect_url))
+
+    print("\rSuccessfully logged in!", end="")
+
+def navigate_to_schedule(session):
+    #Go to the "Renseignement des études" page
+    informations_about_studies_page_url = "https://capsuleweb.ulaval.ca/pls/etprod8/twbkwbis.P_GenMenu?name=bmenu.P_StuMainMnu"
+    informations_about_studies_page = session.get(informations_about_studies_page_url)
+
+    #Go to the "Inscription" page
+    inscription_page_url = "https://capsuleweb.ulaval.ca/pls/etprod8/twbkwbis.P_GenMenu?name=bmenu.P_RegMnu"
+    inscription_page = session.get(inscription_page_url)
+
+    #Go to the "Horaire detaillee" page
+    detailed_schedule_page_url = "https://capsuleweb.ulaval.ca/pls/etprod8/bwskfshd.P_CrseSchdDetl"
+    detailed_schedule_page = session.get(detailed_schedule_page_url)
+
+    #Choose the most recent schedule
+    html_parser = BeautifulSoup(detailed_schedule_page.text, "html.parser")
+    post_url = html_parser.find_all('form')[1]['action']
+    post_url = "https://capsuleweb.ulaval.ca{0}".format(post_url)
+    most_recent_schedule_value = html_parser.find('option')['value']
+    if schedule_date:
+        most_recent_schedule_value = schedule_date
+    form_infos = {'term_in' : most_recent_schedule_value}
+    detailed_schedule_page = session.post(post_url, data=form_infos )
+
+    print("\rParsing the schedule...", end="")
+    parsing_schedule(detailed_schedule_page.text, arguments.description, calendar)
 
 def parsing_schedule(page_html, description, calendar):
     #Parse the HTML of the "Horaire detaillee" page
