@@ -1,8 +1,10 @@
+'''Module that contains the class to create calendars.'''
+
 class Calendar:
     '''A class that represents a list of events.
 
     Attributes:
-        file_name (string): The name of the file in which to write the 
+        file_name (string): The name of the file in which to write the
                             events.
         events (list<Event>): A list of Event.
     '''

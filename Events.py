@@ -1,8 +1,9 @@
+'''Module that contains the class to create events.'''
 import datetime
 
 class Event:
     '''A class that represents an event.
-    
+
     Attributes:
         subject (string): The title of the event.
         start_date (datetime): The starting time and date of the event.
@@ -38,7 +39,7 @@ class Event:
 
     def format(self):
         '''Format the Event class members
-        
+
         Returns:
             datas (string): The formatted datas.
         '''

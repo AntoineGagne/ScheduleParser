@@ -1,12 +1,13 @@
+'''Module that contains the class to create accounts.'''
 class Account:
     '''A class that represents a user account.
-    
+
     Attributes:
         username (string): The name of the account.
         password (string): The password of the account.
     '''
-    def __init__(self, 
-                 username, 
+    def __init__(self,
+                 username,
                  password):
         '''Constructor for the account class.
 
