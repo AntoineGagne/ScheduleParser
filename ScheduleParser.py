@@ -30,22 +30,12 @@ def arguments_parser():
     return parser.parse_args()
 
 def navigate_website():
-
     #Arguments passed to the program
     arguments = arguments_parser()
 
     try:
         #Date for which the user wants the schedule
-        month = None
-        year = None
-        schedule_date = None
-        if arguments.semester_date:
-            month = arguments.semester_date[1]
-            year = arguments.semester_date[0]
-            if not re.compile("^[AaEeHh].*$").match(month) or int(year) < 2009:
-                raise RuntimeError("Invalid command line argument")
-            SCHEDULE_DATE = {"A": "09", "H": "01", "E": "05"}
-            schedule_date = str(year) + SCHEDULE_DATE[month.capitalize()[0]]
+        schedule_date = handle_semester_date(arguments.semester_date)
 
         idul = input("Enter your IDUL: ")
         pin = getpass.getpass()
@@ -53,23 +43,15 @@ def navigate_website():
         account = Account.Account(idul, pin)
         login_infos = {'sid' : account.username, 
                        'PIN' : account.password}
+
         calendar = Calendar.Calendar(arguments.file_name)
 
         print("\rLogging in...", end="")
 
         with requests.session() as session:
-            #The constant headers that are useful to keep
-            session.headers['Host'] = 'capsuleweb.ulaval.ca'
-            session.headers['User-Agent'] = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:41.0) Gecko/20100101 Firefox/41.0'
-            session.headers['Accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
-            session.headers['Accept-Language'] = 'en-US,en;q=0.5'
-            session.headers['Accept-Encoding'] = 'gzip, deflate'
-            session.headers['DNT'] = '1'
-            session.headers['Connection'] = 'keep-alive'
-
+            set_session_headers(session)
             login(login_infos, session)
             detailed_schedule_page = navigate_to_schedule(session, schedule_date)
-            print("\rParsing the schedule...", end="")
             parsing_schedule(detailed_schedule_page.text, arguments.description, calendar)
 
     except(IndexError):
@@ -78,6 +60,28 @@ def navigate_website():
         print("\rThe precised year should be higher than 2009.\nThe precised month should be one of those:\n  - Hiver\n  - Ete\n  - Automne")
     except:
         print("\rThere was an unexpected error while executing the program.")
+
+def handle_semester_date(semester_date):
+    schedule_date = None
+    if semester_date:
+        month = semester_date[1]
+        year = semester_date[0]
+        if not re.compile("^[AaEeHh].*$").match(month) or int(year) < 2009:
+            raise RuntimeError("Invalid command line argument")
+        SCHEDULE_DATE = {"A": "09", "H": "01", "E": "05"}
+        schedule_date = str(year) + SCHEDULE_DATE[month.capitalize()[0]]
+
+    return schedule_date
+
+def set_session_headers(session):
+    #The constant headers that are useful to keep
+    session.headers['Host'] = 'capsuleweb.ulaval.ca'
+    session.headers['User-Agent'] = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:41.0) Gecko/20100101 Firefox/41.0'
+    session.headers['Accept'] = 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+    session.headers['Accept-Language'] = 'en-US,en;q=0.5'
+    session.headers['Accept-Encoding'] = 'gzip, deflate'
+    session.headers['DNT'] = '1'
+    session.headers['Connection'] = 'keep-alive'
 
 
 def login(login_infos, session):
@@ -125,6 +129,7 @@ def navigate_to_schedule(session, schedule_date):
 
 
 def parsing_schedule(page_html, description, calendar):
+    print("\rParsing the schedule...", end="")
     #Parse the HTML of the "Horaire detaillee" page
     html_parser = BeautifulSoup(page_html, "html.parser")
     #Get the name of the courses
