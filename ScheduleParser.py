@@ -59,8 +59,8 @@ def navigate_website():
         print("\rThe username or password provided is incorrect.")
     except(RuntimeError):
         print("\rThe precised year should be higher than 2009.\nThe precised month should be one of those:\n  - Hiver\n  - Ete\n  - Automne")
-    #except:
-        #print("\rThere was an unexpected error while executing the program.")
+    except:
+        print("\rThere was an unexpected error while executing the program.")
 
 
 def handle_semester_date(semester_date):
