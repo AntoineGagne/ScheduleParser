@@ -29,6 +29,7 @@ def arguments_parser():
 
     return parser.parse_args()
 
+
 def navigate_website():
     #Arguments passed to the program
     arguments = arguments_parser()
@@ -58,8 +59,9 @@ def navigate_website():
         print("\rThe username or password provided is incorrect.")
     except(RuntimeError):
         print("\rThe precised year should be higher than 2009.\nThe precised month should be one of those:\n  - Hiver\n  - Ete\n  - Automne")
-    except:
-        print("\rThere was an unexpected error while executing the program.")
+    #except:
+        #print("\rThere was an unexpected error while executing the program.")
+
 
 def handle_semester_date(semester_date):
     schedule_date = None
@@ -72,6 +74,7 @@ def handle_semester_date(semester_date):
         schedule_date = str(year) + SCHEDULE_DATE[month.capitalize()[0]]
 
     return schedule_date
+
 
 def set_session_headers(session):
     #The constant headers that are useful to keep
@@ -103,6 +106,7 @@ def login(login_infos, session):
 
     print("\rSuccessfully logged in!", end="")
 
+
 def navigate_to_schedule(session, schedule_date):
     #Go to the "Renseignement des études" page
     informations_about_studies_page_url = "https://capsuleweb.ulaval.ca/pls/etprod8/twbkwbis.P_GenMenu?name=bmenu.P_StuMainMnu"
@@ -125,6 +129,7 @@ def navigate_to_schedule(session, schedule_date):
         most_recent_schedule_value = schedule_date
     form_infos = {'term_in' : most_recent_schedule_value}
     detailed_schedule_page = session.post(post_url, data=form_infos )
+
     return detailed_schedule_page
 
 
@@ -150,32 +155,21 @@ def parsing_schedule(page_html, description, calendar):
         course_number += 1
     calendar.write_to_file(description)
     print("\rFile created with success!")
+    
 
 def create_events(course_info, course_caption, description, calendar, WEEK_DAYS):
     time = course_info[1].text.split('-')
     if len(time) > 1:
-        starting_time = time[0].split(':')
-        ending_time = time[1].split(':')
         week_day = course_info[2].text
         location = course_info[3].text
         date = course_info[4].text.split('-')
-        starting_date = date[0].split('/')
-        ending_date = date[1].split('/')
-        starting_date_object = datetime.datetime(int(starting_date[0]),
-                                                 int(starting_date[1]),
-                                                 int(starting_date[2]),
-                                                 int(starting_time[0]),
-                                                 int(starting_time[1]))
-        ending_date_object = datetime.datetime(int(ending_date[0]),
-                                               int(ending_date[1]),
-                                               int(ending_date[2]),
-                                               int(starting_time[0]),
-                                               int(starting_time[1]))
+        starting_date_object, ending_date_object = create_date_objects(time, date)
         if WEEK_DAYS[week_day] >= starting_date_object.weekday():
             delta_days = WEEK_DAYS[week_day] - starting_date_object.weekday()
             time_delta = datetime.timedelta(delta_days)
             starting_date_object = starting_date_object + time_delta
             time_between_start_and_end = ending_date_object - starting_date_object
+            ending_time = time[1].split(':')
             ending_date_object = datetime.datetime(int(starting_date_object.year),
                                                    int(starting_date_object.month),
                                                    int(starting_date_object.day),
@@ -186,13 +180,8 @@ def create_events(course_info, course_caption, description, calendar, WEEK_DAYS)
                                  ending_date_object,
                                  str(location))
             if description:
-                event.description = r'"'
-                event.description += course_info[0].text
-                event.description += "\n\n"
-                teacher_name = course_info[6].text.split()
-                for name in teacher_name:
-                    event.description += " " + name
-                event.description += r'"'
+                add_description(event, course_info[0].text, course_info[6].text.split())
+
             calendar.events.append(event)
             #Interval of 7 days between each week
             for days in range(time_between_start_and_end.days // 7):
@@ -204,14 +193,36 @@ def create_events(course_info, course_caption, description, calendar, WEEK_DAYS)
                                      ending_date_object,
                                      location)
                 if description:
-                    event.description = r'"'
-                    event.description += course_info[0].text
-                    event.description += "\n\n"
-                    teacher_name = course_info[6].text.split()
-                    for name in teacher_name:
-                        event.description += " " + name
-                    event.description += r'"'
+                    add_description(event, course_info[0].text, course_info[6].text.split())
+
                 calendar.events.append(event)
+
+
+def create_date_objects(time, date):
+    starting_time = time[0].split(':')
+    starting_date = date[0].split('/')
+    ending_date = date[1].split('/')
+    starting_date_object = datetime.datetime(int(starting_date[0]),
+                                             int(starting_date[1]),
+                                             int(starting_date[2]),
+                                             int(starting_time[0]),
+                                             int(starting_time[1]))
+    ending_date_object = datetime.datetime(int(ending_date[0]),
+                                           int(ending_date[1]),
+                                           int(ending_date[2]),
+                                           int(starting_time[0]),
+                                           int(starting_time[1]))
+
+    return starting_date_object, ending_date_object
+
+
+def add_description(event, class_type, teacher_name):
+    event.description = r'"'
+    event.description += class_type
+    event.description += "\n\n"
+    for name in teacher_name:
+        event.description += " " + name
+    event.description += r'"'
 
 if __name__ == '__main__':
     navigate_website()
