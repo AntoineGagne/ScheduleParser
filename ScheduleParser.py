@@ -33,7 +33,7 @@ def arguments_parser():
                         help="Adds a description to the event.")
     parser.add_argument("-s",
                         "--semester_date",
-                        metavar=("YEAR", "MONTH"),
+                        metavar=("YEAR", "SEASON"),
                         nargs=2,
                         help="Choose the semester schedule you want (ex: 2016 Hiver)")
 
